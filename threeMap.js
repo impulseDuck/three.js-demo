@@ -15,6 +15,7 @@ export default class ThreeMap {
         this.initScene();
         this.render();
         this.setHelper();
+        this.drawMap()
         this.drawLines()
         // this.drawGeometry();
         this.setControl()
@@ -86,7 +87,7 @@ export default class ThreeMap {
         // 绘制模块
         const group = new THREE.Group()
         this.vectorJson.forEach(e => {
-            e.coordinates.forEach(area=>{
+            e.coordinates.forEach(area => {
                 const mesh = this.getMesh(area)
                 group.add(mesh)
             })
@@ -121,42 +122,77 @@ export default class ThreeMap {
         return mesh
     }
     // 绘制多线条
-    drawLines () {
-         this.vectorJson = []
-         this.mapData.features.forEach(item => {
-             // console.log('1', item.geometry.coordinates)
-             const areas = item.geometry.coordinates
-             const areaData = { coordinates: [] }
-             areas.forEach(i => {
+    drawLines() {
+        this.vectorJson = []
+        this.mapData.features.forEach(item => {
+            // console.log('1', item.geometry.coordinates)
+            const areas = item.geometry.coordinates
+            const areaData = { coordinates: [] }
+            areas.forEach(i => {
                 areaData.coordinates.push(this.lnglatToVector(i))
                 this.vectorJson.push(areaData)
-             })
-         })
-         const group = new THREE.Group()
-         this.vectorJson.forEach(area => {
-             const mesh = this.getLines(area.coordinates)
-             group.add(mesh)
-         })
-         this.scene.add(group)
+            })
+        })
+        const group = new THREE.Group()
+        this.vectorJson.forEach(area => {
+            const mesh = this.getLines(area.coordinates)
+            group.add(mesh)
+        })
+        this.scene.add(group)
     }
 
     // 绘制线条
-    getLines (points) {
+    getLines(points) {
         const material = new THREE.LineBasicMaterial({
-            color:'#ccc',
+            color: '#ccc',
             // transparent:true,
             // opacity:0.9
         })
         const geometry = new THREE.Geometry()
         points.forEach(p => {
-            const [x,y,z]=p
-            geometry.vertices.push(new THREE.Vector3(x,y,z))
+            const [x, y, z] = p
+            geometry.vertices.push(new THREE.Vector3(x, y, z))
         })
-        const line = new THREE.Line(geometry,material)
+        const line = new THREE.Line(geometry, material)
         return line
-       
-    }
 
+    }
+    // drawMap绘制地图
+    drawMap() {
+        console.log('1111', this.mapData);
+        this.vectorJson = []
+        this.mapData.features.forEach(item => {
+            // console.log('1', item.geometry.coordinates)
+            const areas = item.geometry.coordinates[0]
+            const areaData = { ...item.properties, coordinates: [] }
+            areas.forEach((area, i) => {
+                if (area[0] instanceof Array) {
+                    areaData.coordinates[i] = []
+                    area.forEach(point => {
+                        areaData.coordinates[i].push(this.lnglatToVector(point))
+                    })
+                } else {
+                    areaData.coordinates.push(this.lnglatToVector(area))
+
+                }
+            })
+            this.vectorJson.push(areaData)
+        })
+        const group = new THREE.Group()
+        this.vectorJson.forEach(provinces => {
+            if(provinces.coordinates[0][0] instanceof Array){
+                provinces.coordinates.forEach(area=>{
+                    const mesh = this.getMesh(area)
+                    group.add(mesh)
+                })
+            }else{
+                const mesh= this.getMesh(provinces.coordinates)
+                group.add(mesh)
+            }
+            
+        })
+        this.scene.add(group)
+    }
 
     //经纬度转三维坐标
     lnglatToVector(lnglat) {
@@ -164,7 +200,7 @@ export default class ThreeMap {
             this.projection = d3
                 .geoMercator()
                 .center([112.946332, 28.236672])
-                .scale(500)
+                .scale(80)
                 //.rotate(Math.PI / 4)
                 .translate([0, 0]);
         }
