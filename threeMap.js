@@ -16,6 +16,7 @@ export default class ThreeMap {
         this.render();
         this.setHelper();
         this.drawMap()
+        // this.drawChangsha()
         this.drawLines()
         // this.drawGeometry();
         this.setControl()
@@ -116,7 +117,7 @@ export default class ThreeMap {
         const material = new THREE.MeshBasicMaterial({
             color: 'purple',
             transparent: true,
-            opacity: 0.8
+            opacity: 0.5
         })
         const mesh = new THREE.Mesh(geometry, material)
         return mesh
@@ -145,8 +146,8 @@ export default class ThreeMap {
     getLines(points) {
         const material = new THREE.LineBasicMaterial({
             color: '#ccc',
-            // transparent:true,
-            // opacity:0.9
+            transparent:true,
+            opacity:0.9
         })
         const geometry = new THREE.Geometry()
         points.forEach(p => {
@@ -179,11 +180,57 @@ export default class ThreeMap {
             this.vectorJson.push(areaData)
         })
         const group = new THREE.Group()
+        const lineGroup = new THREE.Line()
         this.vectorJson.forEach(provinces => {
             if(provinces.coordinates[0][0] instanceof Array){
                 provinces.coordinates.forEach(area=>{
                     const mesh = this.getMesh(area)
                     group.add(mesh)
+                    const line = this.getLines(area);
+                    lineGroup.add(line);
+                })
+            }else{
+                const mesh= this.getMesh(provinces.coordinates)
+                const line = this.getLines(provinces.coordinates)
+                group.add(mesh)
+                lineGroup.add(line)
+            }
+            
+        })
+        this.scene.add(group)
+        this.scene.add(lineGroup)
+    }
+
+    // drawMap绘制地图
+    drawChangsha() {
+        console.log('1111', this.mapData);
+        this.vectorJson = []
+        this.mapData.features.forEach(item => {
+            // console.log('1', item.geometry.coordinates)
+            const areas = item.geometry.coordinates[0]
+            const areaData = { ...item.properties, coordinates: [] }
+            areas.forEach((area, i) => {
+                if (area[0] instanceof Array) {
+                    areaData.coordinates[i] = []
+                    area.forEach(point => {
+                        areaData.coordinates[i].push(this.lnglatToVector(point))
+                    })
+                } else {
+                    areaData.coordinates.push(this.lnglatToVector(area))
+
+                }
+            })
+            this.vectorJson.push(areaData)
+        })
+        const group = new THREE.Group()
+        const lineGroup = new THREE.Line()
+        this.vectorJson.forEach(provinces => {
+            if(provinces.coordinates[0][0] instanceof Array){
+                provinces.coordinates.forEach(area=>{
+                    const mesh = this.getMesh(area)
+                    const line = this.drawLine(area)
+                    group.add(mesh)
+                    lineGroup.add(line)
                 })
             }else{
                 const mesh= this.getMesh(provinces.coordinates)
@@ -192,7 +239,9 @@ export default class ThreeMap {
             
         })
         this.scene.add(group)
+        this.scene.add(lineGroup)
     }
+
 
     //经纬度转三维坐标
     lnglatToVector(lnglat) {
