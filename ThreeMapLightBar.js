@@ -23,6 +23,7 @@ export default class ThreeMapLightBar extends ThreeMap {
             // console.log(data);
             const { cp } = this.vectorJson[d.name]
             const [x, y, z] = this.lnglatToVector(cp)
+            // this.vectorJson[d.name].vector3=
             var geomentry = new THREE.PlaneGeometry(1, d.value / 5)
             var material = new THREE.MeshBasicMaterial({
                 map: this.textures[i % 2],
@@ -56,5 +57,30 @@ export default class ThreeMapLightBar extends ThreeMap {
         const [x,y,z]=point
         circle.position.set(x,y,z)
         return circle
+    }
+
+    drawFlyLine(data){
+        const group = new THREE.Group()
+        data.forEach(d=>{
+            const { source, target } = d;
+            const [x0,y0,z0]=this.vectorJson[source.name].vector3
+            const [x1,y1,z1]=this.vectorJson[target.name].vector3
+            const curve = new THREE.QuadraticBezierCurve3(
+                new THREE.Vector3(x0,y0,z0),
+                new THREE.Vector3((x0+x1)/2,(y0+y1)/2,-10),
+                new THREE.Vector3(x1,y1,z1)
+            )
+            const points = curve.getPoints(20)
+            const geometry=new THREE.Geometry()
+            geometry.vertices=points
+            const material=new THREE.LineBasicMaterial({
+                color:'#3333cc'
+            })
+            const line = new THREE.Line(geometry,material)
+            group.add(line)
+            // const THREE.vector3(x1,y1.z1)
+        })
+        group.rotation.y = Math.PI
+        this.scene.add(group)
     }
 }

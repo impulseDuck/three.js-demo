@@ -26,7 +26,18 @@ const lightBarData = [
     { name: '辽宁省', value: 63 },
     { name: '青海省', value: 90 }
 ];
-
+const flyDatas = [
+    { source: { name: '海南省' }, target: { name: '四川省' } },
+    { source: { name: '北京市' }, target: { name: '四川省' } },
+    { source: { name: '山东省' }, target: { name: '四川省' } },
+    { source: { name: '台湾' }, target: { name: '四川省' } },
+    { source: { name: '黑龙江省' }, target: { name: '四川省' } },
+    { source: { name: '湖北省' }, target: { name: '四川省' } },
+    { source: { name: '内蒙古自治区' }, target: { name: '四川省' } },
+    { source: { name: '西藏自治区' }, target: { name: '四川省' } },
+    { source: { name: '新疆维吾尔自治区' }, target: { name: '四川省' } },
+    { source: { name: '青海省' }, target: { name: '四川省' } }
+];
 
 
 // axios.get('./map/china.json').then(res=>{
@@ -40,4 +51,5 @@ $.get('./map/china.json',data=>{
     // console.log(data);
     const map = new ThreeMapLightBar(decrypt.decode(data));
     map.drawLightBar(lightBarData);
+    map.drawFlyLine(flyDatas);
 })
